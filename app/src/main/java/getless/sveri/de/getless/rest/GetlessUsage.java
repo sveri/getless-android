@@ -27,6 +27,10 @@ import getless.sveri.de.getless.pojo.Weight;
  */
 public class GetlessUsage {
 
+    public void addWeight(final String token, final RestResult result, Context context) {
+
+    }
+
     public void login(String username, String password, final LoginRestResult result, Context context) throws UnsupportedEncodingException, JSONException {
         final RequestParams params = new RequestParams();
         params.put("username", username);
@@ -59,7 +63,6 @@ public class GetlessUsage {
     }
 
     public void getWeights(final WeightsRestResult restResult, String getlessToken) {
-
 
         GetlessClient.get("weight", getlessToken, new JsonHttpResponseHandler() {
 
