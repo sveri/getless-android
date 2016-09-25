@@ -18,4 +18,8 @@
     <string name="title_activity_home">Getless</string>
     <string name="weight_button">Weight</string>
     <string name="add_button">Add</string>
+    <string name="cancel">Cancel</string>
+    <string name="add_measure">Add Measure</string>
+    <string name="date">Date</string>
+    <string name="weight">Weight</string>
 </resources>

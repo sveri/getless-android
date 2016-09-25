@@ -53,7 +53,9 @@ public class AddWeightActivity extends AppCompatActivity {
 
 // 2. Chain together various setter methods to set the dialog characteristics
                 builder.setMessage("message")
-                        .setTitle("title");
+                        .setTitle(R.string.add_measure);
+
+                builder.setView(getLayoutInflater().inflate(R.layout.dialog_add_weight, null));
 
                 builder.setPositiveButton(R.string.add_button, new DialogInterface.OnClickListener() {
                     @Override
@@ -62,13 +64,12 @@ public class AddWeightActivity extends AppCompatActivity {
                         // or return them to the component that opened the dialog
 //                        ...
                     }
-                })
-                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int id) {
-                                        ...
-                                    }
-                                });
+                }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
 
 // 3. Get the AlertDialog from create()
                 AlertDialog dialog = builder.create();

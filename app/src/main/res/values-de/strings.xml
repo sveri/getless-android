@@ -15,4 +15,8 @@
     <string name="error_invalid_password">Das Passwort ist zu kurz</string>
     <string name="weight_button">Gewicht</string>
     <string name="add_button">Hinzufügen</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="add_measure">Messung hinzufügen</string>
+    <string name="date">Datum</string>
+    <string name="weight">Gewicht</string>
 </resources>
