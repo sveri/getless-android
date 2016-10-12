@@ -77,12 +77,14 @@ public class GetlessUsage {
                     System.out.println(e);
                     restResult.setResult(false);
                 }
+                restResult.setStatusCode(statusCode);
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONArray errorResponse) {
                 super.onFailure(statusCode, headers, throwable, errorResponse);
                 restResult.setResult(false);
+                restResult.setStatusCode(statusCode);
             }
 
             @Override
@@ -90,6 +92,15 @@ public class GetlessUsage {
                 super.onFailure(statusCode, headers, responseString, throwable);
                 restResult.setResult(false);
                 restResult.setErrorMessage(responseString);
+                restResult.setStatusCode(statusCode);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                super.onFailure(statusCode, headers, throwable, errorResponse);
+                restResult.setResult(false);
+                restResult.setErrorMessage(errorResponse.toString());
+                restResult.setStatusCode(statusCode);
             }
         });
     }

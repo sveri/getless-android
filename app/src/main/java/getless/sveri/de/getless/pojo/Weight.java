@@ -8,16 +8,16 @@ import java.util.Date;
 
 public class Weight {
 
-    private int weight;
+    private float weight;
 
     private Date weightedAt;
 
-    public int getWeight() {
+    public float getWeight() {
         return weight;
     }
 
-    public void setWeight(int weight) {
-        this.weight = weight;
+    public void setWeight(double weight) {
+        this.weight = Math.round(10 * weight) / 10;
     }
 
     public Date getWeightedAt() {

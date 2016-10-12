@@ -6,6 +6,16 @@ package getless.sveri.de.getless.rest;
 public class RestResult {
     private boolean result;
 
+    public int getStatusCode() {
+        return statusCode;
+    }
+
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    private int statusCode;
+
     public String getErrorMessage() {
         return errorMessage;
     }

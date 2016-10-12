@@ -2,6 +2,7 @@ package getless.sveri.de.getless;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -51,18 +52,13 @@ public class AddWeightActivity extends AppCompatActivity {
             public void onClick(View view) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
 
-// 2. Chain together various setter methods to set the dialog characteristics
-                builder.setMessage("message")
-                        .setTitle(R.string.add_measure);
+                builder.setTitle(R.string.add_measure);
 
                 builder.setView(getLayoutInflater().inflate(R.layout.dialog_add_weight, null));
 
                 builder.setPositiveButton(R.string.add_button, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
-                        // User clicked OK, so save the mSelectedItems results somewhere
-                        // or return them to the component that opened the dialog
-//                        ...
                     }
                 }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
@@ -71,17 +67,14 @@ public class AddWeightActivity extends AppCompatActivity {
                     }
                 });
 
-// 3. Get the AlertDialog from create()
                 AlertDialog dialog = builder.create();
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
                 dialog.show();
             }
         });
 
         mChart = (LineChart) findViewById(R.id.chart1);
 
-        final GetWeightTask getWeightTask = new GetWeightTask();
+        final GetWeightTask getWeightTask = new GetWeightTask(this);
         getWeightTask.execute((Void) null);
     }
 
@@ -156,6 +149,12 @@ public class AddWeightActivity extends AppCompatActivity {
 
     public class GetWeightTask extends AsyncTask<Void, Void, Boolean> {
 
+        private final AddWeightActivity addWeightActivity;
+
+        public GetWeightTask(AddWeightActivity addWeightActivity) {
+            this.addWeightActivity = addWeightActivity;
+        }
+
         @Override
         protected Boolean doInBackground(Void... params) {
 
@@ -174,6 +173,9 @@ public class AddWeightActivity extends AppCompatActivity {
         protected void onPostExecute(final Boolean success) {
             if (success) {
                 finish();
+            } else if(restResult.getStatusCode() == 401) {
+                Intent i = new Intent(addWeightActivity, LoginActivity.class);
+                startActivity(i);
             }
         }
     }
@@ -188,9 +190,8 @@ public class AddWeightActivity extends AppCompatActivity {
 
         @Override
         public String getFormattedValue(float value, AxisBase axis) {
-            // "value" represents the position of the label on the axis (x or y)
             Date d = mValues[(int) value];
-            return new SimpleDateFormat("dd.MM.yyyy").format(d);
+            return new SimpleDateFormat("dd.MM").format(d);
         }
 
         /**
