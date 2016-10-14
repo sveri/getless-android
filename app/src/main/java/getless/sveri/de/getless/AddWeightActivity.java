@@ -10,11 +10,14 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
@@ -37,11 +40,13 @@ import getless.sveri.de.getless.rest.GetlessUsage;
 import getless.sveri.de.getless.rest.RestResult;
 import getless.sveri.de.getless.rest.WeightsRestResult;
 
+import static android.R.attr.duration;
+
 public class AddWeightActivity extends AppCompatActivity {
 
     private LineChart mChart;
 
-    private WeightsRestResult restResult = new WeightsRestResult();
+//    private WeightsRestResult restResult = new WeightsRestResult();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +56,10 @@ public class AddWeightActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+
+
+
+
         fab.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -61,17 +70,23 @@ public class AddWeightActivity extends AppCompatActivity {
 
                 View layout=getLayoutInflater().inflate(R.layout.dialog_add_weight,null);
 
-//                builder.setView(getLayoutInflater().inflate(R.layout.dialog_add_weight, null));
-                builder.setView(layout);
-
                 final EditText weightText = (EditText) layout.findViewById(R.id.add_weight_weight);
                 final DatePicker weightDatePicker = (DatePicker) layout.findViewById(R.id.weight_datePicker);
+
+                builder.setView(layout);
 
                 builder.setPositiveButton(R.string.add_button, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
 
-                        new AddWeightTask(view.getContext(), getDateFromDatePicket(weightDatePicker), Float.parseFloat(String.valueOf(weightText.getText()))).execute();
+                        final String checkResult = checkAddWeightInputs(weightText);
+
+                        if("".equals(checkResult)) {
+                            new AddWeightTask(view.getContext(), getDateFromDatePicket(weightDatePicker), Float.parseFloat(String.valueOf(weightText.getText()))).execute();
+                        } else {
+                            Toast toast = Toast.makeText(view.getContext(), checkResult, Toast.LENGTH_LONG);
+                            toast.show();
+                        }
                     }
 
                 }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -90,6 +105,14 @@ public class AddWeightActivity extends AppCompatActivity {
 
         final GetWeightTask getWeightTask = new GetWeightTask(this);
         getWeightTask.execute((Void) null);
+    }
+
+    private String checkAddWeightInputs(EditText weightText){
+
+        if (TextUtils.isEmpty(weightText.getText())) {
+            return getString(R.string.please_insert_weight);
+        }
+        return "";
     }
 
     public static java.util.Date getDateFromDatePicket(DatePicker datePicker){
@@ -120,11 +143,11 @@ public class AddWeightActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void setData() {
+    private void drawWeightGraph(WeightsRestResult weightsRestResult) {
 
         ArrayList<Entry> values = new ArrayList<Entry>();
 
-        final List<Weight> weights = restResult.getWeights();
+        final List<Weight> weights = weightsRestResult.getWeights();
         Date[] dates = new Date[weights.size()];
         for (int i = 0; i < weights.size(); i++) {
             values.add(new Entry(i, weights.get(i).getWeight()));
@@ -145,29 +168,23 @@ public class AddWeightActivity extends AppCompatActivity {
         LineDataSet set1;
         set1 = new LineDataSet(values, "DataSet 1");
 
-        // set the line to be drawn like this "- - - - - -"
-//            set1.enableDashedLine(10f, 5f, 0f);
-//            set1.enableDashedHighlightLine(10f, 5f, 0f);
         set1.setColor(Color.BLACK);
         set1.setCircleColor(Color.BLACK);
         set1.setLineWidth(1f);
         set1.setCircleRadius(3f);
         set1.setDrawCircleHole(false);
         set1.setValueTextSize(9f);
-//            set1.setDrawFilled(true);
 
         ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
         dataSets.add(set1); // add the datasets
 
-        // create a data object with the datasets
         LineData data = new LineData(dataSets);
 
-        // set data
         mChart.setData(data);
-        mChart.refreshDrawableState();
+        mChart.invalidate();
     }
 
-    public class GetWeightTask extends AsyncTask<Void, Void, Boolean> {
+    public class GetWeightTask extends AsyncTask<Void, Void, WeightsRestResult> {
 
         private final AddWeightActivity addWeightActivity;
 
@@ -176,37 +193,30 @@ public class AddWeightActivity extends AppCompatActivity {
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
+        protected WeightsRestResult doInBackground(Void... params) {
+            WeightsRestResult restResult = new WeightsRestResult();
+            GetlessUsage getlessUsage = new GetlessUsage();
+            getlessUsage.getWeights(restResult, Preferences.getGetlessToken(getSharedPreferences(Preferences.PREFS_NAME, MODE_PRIVATE)));
 
-            try {
-                GetlessUsage getlessUsage = new GetlessUsage();
-                getlessUsage.getWeights(restResult, Preferences.getGetlessToken(getSharedPreferences(Preferences.PREFS_NAME, MODE_PRIVATE)));
-                setData();
-            } catch (Exception e) {
-                return false;
-            }
-
-            return restResult.isResult();
+            return restResult;
         }
 
         @Override
-        protected void onPostExecute(final Boolean success) {
-            if (success) {
-                finish();
-            } else if(restResult.getStatusCode() == 401) {
+        protected void onPostExecute(final WeightsRestResult weightsRestResult) {
+            if (weightsRestResult.getStatusCode() == 200) {
+                drawWeightGraph(weightsRestResult);
+            } else if(weightsRestResult.getStatusCode() == 401) {
                 Intent i = new Intent(addWeightActivity, LoginActivity.class);
                 startActivity(i);
             }
         }
     }
 
-    public class AddWeightTask extends AsyncTask<Void, Void, Boolean> {
+    public class AddWeightTask extends AsyncTask<Void, Void, RestResult> {
 
         private final Context context;
         private Date date;
         private float weight;
-
-        private final RestResult result = new RestResult();
 
         public AddWeightTask(Context context, Date date, float weight) {
             this.context = context;
@@ -215,23 +225,26 @@ public class AddWeightActivity extends AppCompatActivity {
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
+        protected RestResult doInBackground(Void... params) {
+            final RestResult result = new RestResult();
 
             try {
                 GetlessUsage getlessUsage = new GetlessUsage();
                 getlessUsage.addWeight(Preferences.getGetlessToken(getSharedPreferences(Preferences.PREFS_NAME, MODE_PRIVATE)),
                         result, context, date, weight);
             } catch (Exception e) {
-                return false;
+                Log.e(getClass().getName(), "Error getting weight: ");
+                e.printStackTrace();
             }
 
-            return restResult.isResult();
+            return result;
         }
 
         @Override
-        protected void onPostExecute(final Boolean success) {
-            if (success) {
-                finish();
+        protected void onPostExecute(final RestResult restResult) {
+            if (restResult.getStatusCode() == 200) {
+                Intent i = new Intent(context, AddWeightActivity.class);
+                startActivity(i);
             } else if(restResult.getStatusCode() == 401) {
                 Intent i = new Intent(context, LoginActivity.class);
                 startActivity(i);

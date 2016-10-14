@@ -22,4 +22,5 @@
     <string name="add_measure">Add Measure</string>
     <string name="date">Date</string>
     <string name="weight">Weight</string>
+    <string name="please_insert_weight">Please add a weight</string>
 </resources>

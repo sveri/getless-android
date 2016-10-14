@@ -1,6 +1,7 @@
 package getless.sveri.de.getless.rest;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.google.gson.FieldNamingStrategy;
 import com.google.gson.Gson;
@@ -29,6 +30,8 @@ import getless.sveri.de.getless.pojo.Weight;
 public class GetlessUsage {
 
     public void addWeight(final String token, final RestResult result, Context context, Date date, float weight) throws JSONException, UnsupportedEncodingException {
+        Log.d(getClass().getName(), "Start calling add weight");
+
         JSONObject jsonParams = new JSONObject();
         jsonParams.put("date", date.getTime());
         jsonParams.put("weight", weight);
@@ -41,13 +44,14 @@ public class GetlessUsage {
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 result.setResult(true);
                 result.setStatusCode(statusCode);
+                Log.d(getClass().getName(), "Added weight successfully");
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                super.onFailure(statusCode, headers, throwable, errorResponse);
                 result.setResult(false);
                 result.setStatusCode(statusCode);
+                Log.d(getClass().getName(), "Error adding weight: " + errorResponse);
             }
 
         });
@@ -55,6 +59,8 @@ public class GetlessUsage {
     }
 
     public void login(String username, String password, final LoginRestResult result, Context context) throws UnsupportedEncodingException, JSONException {
+
+        Log.d(getClass().getName(), "Start calling login");
 
         JSONObject jsonParams = new JSONObject();
         jsonParams.put("username", username);
@@ -67,6 +73,7 @@ public class GetlessUsage {
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 result.setResult(true);
                 try {
+                    Log.d(getClass().getName(), "Logged in ");
                     result.setToken(response.getString("token"));
                 } catch (JSONException e) {
                     result.setResult(false);
@@ -75,7 +82,7 @@ public class GetlessUsage {
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                super.onFailure(statusCode, headers, throwable, errorResponse);
+                Log.d(getClass().getName(), "Error logging in: " + errorResponse);
                 result.setResult(false);
             }
         });
@@ -83,17 +90,19 @@ public class GetlessUsage {
     }
 
     public void getWeights(final WeightsRestResult restResult, String getlessToken) {
+        Log.d(getClass().getName(), "Start calling get weight");
 
         GetlessClient.get("weight", getlessToken, new JsonHttpResponseHandler() {
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
-                super.onSuccess(statusCode, headers, response);
                 try {
                     final Gson gson = new GsonBuilder().setFieldNamingStrategy(new WeightedAtNamingStrategy()).create();
                     Weight[] weights = gson.fromJson(response.toString(), Weight[].class);
                     restResult.setWeights(Arrays.asList(weights));
+                    Log.d(getClass().getName(), "Get weight successfully");
                 } catch (Exception e) {
+                    Log.d(getClass().getName(), "Error getting weight");
                     System.out.println(e);
                     restResult.setResult(false);
                 }
@@ -102,22 +111,21 @@ public class GetlessUsage {
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONArray errorResponse) {
-                super.onFailure(statusCode, headers, throwable, errorResponse);
                 restResult.setResult(false);
                 restResult.setStatusCode(statusCode);
+                Log.d(getClass().getName(), "Error getting weight: " + errorResponse);
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                super.onFailure(statusCode, headers, responseString, throwable);
                 restResult.setResult(false);
                 restResult.setErrorMessage(responseString);
                 restResult.setStatusCode(statusCode);
+                Log.d(getClass().getName(), "Error getting weight: " + responseString);
             }
 
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                super.onFailure(statusCode, headers, throwable, errorResponse);
                 restResult.setResult(false);
                 restResult.setErrorMessage(errorResponse.toString());
                 restResult.setStatusCode(statusCode);
@@ -135,5 +143,7 @@ public class GetlessUsage {
             }
             return field.getName();
         }
+
+
     }
 }
