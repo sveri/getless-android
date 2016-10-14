@@ -14,11 +14,9 @@ import org.apache.http.entity.StringEntity;
 public class GetlessClient {
 
     private final static String GETLESS_URI = "http://10.0.2.2:3000/api/";
-//    private final static String GETLESS_URI = "http://sveri.de:3123/api/";
 
     private static SyncHttpClient client = new SyncHttpClient();
 
-//    private static AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
 
     public static void get(String url, String token, AsyncHttpResponseHandler responseHandler) {
         client.addHeader("Authorization", "Token " + token);
@@ -26,6 +24,11 @@ public class GetlessClient {
     }
 
     public static void post(Context context, String url, StringEntity params, AsyncHttpResponseHandler responseHandler) {
+        client.post(context, getAbsoluteUrl(url), params, "application/json", responseHandler);
+    }
+
+    public static void postWithToken(Context context, String url, StringEntity params, String token, AsyncHttpResponseHandler responseHandler) {
+        client.addHeader("Authorization", "Token " + token);
         client.post(context, getAbsoluteUrl(url), params, "application/json", responseHandler);
     }
 

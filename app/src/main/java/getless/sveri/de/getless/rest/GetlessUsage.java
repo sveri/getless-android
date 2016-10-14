@@ -17,6 +17,7 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Date;
 
 import getless.sveri.de.getless.pojo.Weight;
 
@@ -27,14 +28,33 @@ import getless.sveri.de.getless.pojo.Weight;
  */
 public class GetlessUsage {
 
-    public void addWeight(final String token, final RestResult result, Context context) {
+    public void addWeight(final String token, final RestResult result, Context context, Date date, float weight) throws JSONException, UnsupportedEncodingException {
+        JSONObject jsonParams = new JSONObject();
+        jsonParams.put("date", date.getTime());
+        jsonParams.put("weight", weight);
+        StringEntity entity = new StringEntity(jsonParams.toString());
+
+
+        GetlessClient.postWithToken(context, "weight", entity, token, new JsonHttpResponseHandler() {
+
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                result.setResult(true);
+                result.setStatusCode(statusCode);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
+                super.onFailure(statusCode, headers, throwable, errorResponse);
+                result.setResult(false);
+                result.setStatusCode(statusCode);
+            }
+
+        });
 
     }
 
     public void login(String username, String password, final LoginRestResult result, Context context) throws UnsupportedEncodingException, JSONException {
-        final RequestParams params = new RequestParams();
-        params.put("username", username);
-        params.put("password", password);
 
         JSONObject jsonParams = new JSONObject();
         jsonParams.put("username", username);

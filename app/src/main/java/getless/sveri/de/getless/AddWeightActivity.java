@@ -1,18 +1,20 @@
 package getless.sveri.de.getless;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.DatePicker;
+import android.widget.EditText;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
@@ -26,11 +28,13 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import getless.sveri.de.getless.pojo.Weight;
 import getless.sveri.de.getless.rest.GetlessUsage;
+import getless.sveri.de.getless.rest.RestResult;
 import getless.sveri.de.getless.rest.WeightsRestResult;
 
 public class AddWeightActivity extends AppCompatActivity {
@@ -48,18 +52,28 @@ public class AddWeightActivity extends AppCompatActivity {
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
+
             @Override
-            public void onClick(View view) {
+            public void onClick(final View view) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
 
                 builder.setTitle(R.string.add_measure);
 
-                builder.setView(getLayoutInflater().inflate(R.layout.dialog_add_weight, null));
+                View layout=getLayoutInflater().inflate(R.layout.dialog_add_weight,null);
+
+//                builder.setView(getLayoutInflater().inflate(R.layout.dialog_add_weight, null));
+                builder.setView(layout);
+
+                final EditText weightText = (EditText) layout.findViewById(R.id.add_weight_weight);
+                final DatePicker weightDatePicker = (DatePicker) layout.findViewById(R.id.weight_datePicker);
 
                 builder.setPositiveButton(R.string.add_button, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
+
+                        new AddWeightTask(view.getContext(), getDateFromDatePicket(weightDatePicker), Float.parseFloat(String.valueOf(weightText.getText()))).execute();
                     }
+
                 }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
@@ -78,21 +92,27 @@ public class AddWeightActivity extends AppCompatActivity {
         getWeightTask.execute((Void) null);
     }
 
+    public static java.util.Date getDateFromDatePicket(DatePicker datePicker){
+        int day = datePicker.getDayOfMonth();
+        int month = datePicker.getMonth();
+        int year =  datePicker.getYear();
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(year, month, day);
+
+        return calendar.getTime();
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_add_weight, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -175,6 +195,45 @@ public class AddWeightActivity extends AppCompatActivity {
                 finish();
             } else if(restResult.getStatusCode() == 401) {
                 Intent i = new Intent(addWeightActivity, LoginActivity.class);
+                startActivity(i);
+            }
+        }
+    }
+
+    public class AddWeightTask extends AsyncTask<Void, Void, Boolean> {
+
+        private final Context context;
+        private Date date;
+        private float weight;
+
+        private final RestResult result = new RestResult();
+
+        public AddWeightTask(Context context, Date date, float weight) {
+            this.context = context;
+            this.date = date;
+            this.weight = weight;
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            try {
+                GetlessUsage getlessUsage = new GetlessUsage();
+                getlessUsage.addWeight(Preferences.getGetlessToken(getSharedPreferences(Preferences.PREFS_NAME, MODE_PRIVATE)),
+                        result, context, date, weight);
+            } catch (Exception e) {
+                return false;
+            }
+
+            return restResult.isResult();
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            if (success) {
+                finish();
+            } else if(restResult.getStatusCode() == 401) {
+                Intent i = new Intent(context, LoginActivity.class);
                 startActivity(i);
             }
         }
