@@ -23,4 +23,5 @@
     <string name="date">Date</string>
     <string name="weight">Weight</string>
     <string name="please_insert_weight">Please add a weight</string>
+    <string name="button_register_string">Register</string>
 </resources>

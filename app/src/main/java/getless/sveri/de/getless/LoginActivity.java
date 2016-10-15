@@ -36,12 +36,8 @@ import getless.sveri.de.getless.rest.LoginRestResult;
  */
 public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
 
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
     private UserLoginTask mAuthTask = null;
 
-    // UI references.
     private AutoCompleteTextView mEmailView;
     private EditText mPasswordView;
     private View mProgressView;
@@ -73,8 +69,23 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         });
 
+
+
+        Button registerButton = (Button) findViewById(R.id.button_register);
+        registerButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                register();
+            }
+        });
+
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+    }
+
+    private void register() {
+        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://getless.sveri.de/user/signup"));
+        startActivity(browserIntent);
     }
 
     /**

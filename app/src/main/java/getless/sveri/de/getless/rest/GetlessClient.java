@@ -13,7 +13,8 @@ import org.apache.http.entity.StringEntity;
  */
 public class GetlessClient {
 
-    private final static String GETLESS_URI = "http://10.0.2.2:3000/api/";
+//    private final static String GETLESS_URI = "http://10.0.2.2:3000/api/";
+    private final static String GETLESS_URI = "http://sveri.de:3123/api/";
 
     private static SyncHttpClient client = new SyncHttpClient();
 
